@@ -1,0 +1,49 @@
+from backend.models.condition_policy import ConditionPolicy
+
+celiac_policy = ConditionPolicy(
+    condition_id="celiac",
+    blocked_ingredients=[
+        # ── Core gluten grains ────────────────────────────────────────────────
+        "wheat", "whole wheat", "wheat flour", "white flour", "bread flour",
+        "all-purpose flour", "wheat starch", "wheat germ", "wheat bran",
+        "hydrolyzed wheat protein", "modified wheat starch",
+        "wheat berries", "cracked wheat",
+        "barley", "pearl barley", "barley flour", "barley malt",
+        "malt", "malt extract", "malt vinegar", "malt syrup", "malted milk",
+        "rye", "rye flour", "rye bread",
+        # ── Ancient / heritage wheat varieties ───────────────────────────────
+        "spelt", "kamut", "khorasan wheat", "farro", "einkorn", "emmer",
+        "durum", "durum wheat", "semolina", "bulgur", "freekeh",
+        "triticale",
+        # ── Gluten-containing foods ───────────────────────────────────────────
+        "bread", "breadcrumbs", "panko", "croutons", "toast",
+        "bun", "roll", "bagel", "pita", "naan", "flatbread", "tortilla",
+        "pasta", "noodles", "egg noodles", "udon", "ramen", "soba",
+        "couscous", "orzo", "gnocchi",
+        "cake", "cookie", "biscuit", "cracker", "pretzel",
+        "muffin", "waffle", "pancake", "crepe", "donut",
+        "pie crust", "pastry", "puff pastry",
+        # ── Gluten in sauces and condiments ──────────────────────────────────
+        "soy sauce", "teriyaki sauce", "oyster sauce", "hoisin sauce",
+        "worcestershire sauce", "malt vinegar", "beer batter",
+        "flour gravy", "roux",
+        # ── Seitan and mock meats ─────────────────────────────────────────────
+        "seitan", "wheat gluten", "vital wheat gluten", "fu",
+        # ── Alcohol from gluten grains ────────────────────────────────────────
+        "beer", "ale", "lager", "stout", "porter", "wheat beer",
+        # ── Oats (high cross-contamination risk) ─────────────────────────────
+        "oat", "oats", "oatmeal", "rolled oats", "oat flour",
+    ],
+    blocked_tags=[
+        "breaded", "battered", "crumbed", "flour_coated",
+        "beer_battered", "tempura", "pastry_wrapped", "en_croute",
+        "pasta_dish", "dumpling",
+    ],
+    caution_tags=[
+        "shared_fryer", "cross_contact_possible",
+        "wheat_contact", "shared_surfaces",
+        "may_contain_gluten", "unclear_batter",
+        "seasoned_with_soy_sauce",
+    ],
+    uncertainty_penalty=0.25,
+)

@@ -1,0 +1,9 @@
+from backend.browser_use.agents.browser_use_client import get_browseruse_client
+
+
+async def create_browser_session(profile_id: str | None = None):
+    client = get_browseruse_client()
+    browser = await client.browsers.create(
+        profile_id=profile_id,
+    )
+    return browser

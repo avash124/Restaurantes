@@ -1,0 +1,44 @@
+from backend.models.condition_policy import ConditionPolicy
+
+shellfish_policy = ConditionPolicy(
+    condition_id="shellfish_allergy",
+    blocked_ingredients=[
+        # ── Crustaceans ───────────────────────────────────────────────────────
+        "shrimp", "prawn", "king prawn", "tiger prawn", "jumbo shrimp",
+        "crab", "dungeness crab", "blue crab", "snow crab", "king crab",
+        "imitation crab", "surimi", "crab stick",
+        "lobster", "lobster tail", "langoustine", "langosta",
+        "crayfish", "crawfish", "crawdad",
+        "barnacle", "krill",
+        # ── Mollusks ─────────────────────────────────────────────────────────
+        "scallop", "sea scallop", "bay scallop",
+        "clam", "little neck clam", "manila clam", "razor clam",
+        "oyster", "pacific oyster", "kumamoto",
+        "mussel", "blue mussel",
+        "abalone",
+        "cockle", "whelk", "periwinkle", "limpet",
+        "squid", "calamari",
+        "octopus", "tako",
+        "cuttlefish",
+        "snail", "escargot",
+        "sea urchin", "uni",
+        # ── Shellfish-derived condiments and stocks ───────────────────────────
+        "shrimp paste", "belacan", "bagoong",
+        "dried shrimp",
+        "fish sauce", 
+        "shellfish stock", "seafood stock", "seafood broth",
+        "oyster sauce",
+        # ── Dishes known to contain shellfish ─────────────────────────────────
+        "paella", "bouillabaisse", "cioppino", "bisque",
+        "seafood medley", "seafood mix", "fruits de mer",
+        "surf and turf",
+    ],
+    blocked_allergens=["shellfish", "crustacean", "mollusks", "seafood", "crustacean shellfish"],
+    caution_tags=[
+        "cross_contact_possible",
+        "seafood_contact", "shared_fryer_seafood",
+        "may_contain_shellfish", "seafood_adjacent",
+        "shared_grill_seafood",
+    ],
+    uncertainty_penalty=0.25,
+)

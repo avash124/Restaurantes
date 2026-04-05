@@ -1,0 +1,39 @@
+from backend.models.condition_policy import ConditionPolicy
+
+nut_policy = ConditionPolicy(
+    condition_id="nut_allergy",
+    blocked_ingredients=[
+        # ── Peanuts (legume, but commonly grouped with tree nuts) ─────────────
+        "peanut", "peanuts", "peanut butter", "peanut oil",
+        "groundnut", "groundnuts", "arachis oil", "groundnut oil",
+        # ── Tree nuts ─────────────────────────────────────────────────────────
+        "almond", "almonds", "almond butter", "almond flour",
+        "almond meal", "almond milk", "almond paste", "marzipan",
+        "walnut", "walnuts", "walnut oil",
+        "cashew", "cashews", "cashew butter", "cashew cream",
+        "pecan", "pecans",
+        "hazelnut", "hazelnuts", "hazelnut butter", "hazelnut spread", "nutella",
+        "macadamia", "macadamia nut", "macadamia oil",
+        "pistachio", "pistachios",
+        "pine nut", "pine nuts", "pignoli",
+        "brazil nut", "brazil nuts",
+        "chestnut", "chestnuts", "chestnut flour",
+        "coconut", "coconut milk", "coconut cream", "coconut oil",
+        "coconut flour", "desiccated coconut", "shredded coconut",
+        # ── Mixed / generic nut terms ─────────────────────────────────────────
+        "mixed nuts", "nut mix", "trail mix", "nut butter", "nut oil",
+        "nut flour", "nut paste", "nut brittle", "praline",
+        "nougat", "gianduja", "frangipane",
+        # ── Sauces and dishes commonly containing nuts ────────────────────────
+        "satay sauce", "satay", "gado gado", "romesco", "pesto",
+        "tarator", "skordalia", "dukkah", "nut crust",
+    ],
+    blocked_allergens=["peanut", "tree nuts", "nuts", "tree nut", "groundnut"],
+    caution_tags=[
+        "cross_contact_possible",
+        "nut_contact", "may_contain_nuts",
+        "shared_surfaces_nuts", "shared_fryer_nuts",
+        "garnished_with_nuts", "nut_based_sauce",
+    ],
+    uncertainty_penalty=0.25,
+)
