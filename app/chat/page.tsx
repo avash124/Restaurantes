@@ -521,8 +521,10 @@ export default function ChatPage() {
       {overlayControls}
 
       <header className="chat-topbar">
-        <p className="chat-topbar-title">Assistant conversation</p>
-        <p className="chat-topbar-sub">Guidance based on your saved profile and current radius.</p>
+        <div className="chat-topbar-inner">
+          <p className="chat-topbar-title">Assistant conversation</p>
+          <p className="chat-topbar-sub">Guidance based on your saved profile and current radius.</p>
+        </div>
       </header>
 
       <div className="chat-messages">
