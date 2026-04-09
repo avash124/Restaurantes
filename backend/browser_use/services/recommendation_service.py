@@ -62,11 +62,16 @@ async def rank_top_items_across_restaurants(
     enriched_restaurants: list[dict],
     condition_ids: list[str],
     top_n: int = 10,
+    bottom_n: int = 0,
 ) -> list[dict]:
     """
     1. Rule-evaluate ALL items across all restaurants (fast, no network).
-    2. Sort and pick the global top_n candidates.
-    3. Call Gemini explanations ONLY for those top_n items, concurrently.
+    2. Sort and pick the global top_n best + bottom_n worst candidates.
+    3. Call Gemini explanations ONLY for those candidates, concurrently.
+
+    When bottom_n > 0, each result includes a ``tier`` field:
+      "best"  – among the top_n highest-scoring dishes
+      "worst" – among the bottom_n lowest-scoring dishes
     """
     # Phase 1: rule-based scoring for every item (no Gemini)
     all_candidates: list[tuple[dict, MenuItemFacts]] = []
@@ -85,7 +90,7 @@ async def rank_top_items_across_restaurants(
 
             all_candidates.append((restaurant, item))
 
-    # Phase 2: sort by (label rank asc, confidence desc, score desc) and keep top_n
+    # Phase 2: sort by (label rank asc, confidence desc, score desc)
     all_candidates.sort(
         key=lambda x: (
             _LABEL_RANK.get(x[1].final_label, 99),
@@ -93,12 +98,25 @@ async def rank_top_items_across_restaurants(
             -(x[1].final_score if x[1].final_score is not None else 0.0),
         )
     )
-    top_candidates = all_candidates[:top_n]
+
+    top_candidates: list[tuple[dict, MenuItemFacts, str]] = [
+        (r, item, "best") for r, item in all_candidates[:top_n]
+    ]
+
+    if bottom_n > 0 and len(all_candidates) > top_n:
+        bottom_start = max(top_n, len(all_candidates) - bottom_n)
+        bottom_candidates = [
+            (r, item, "worst") for r, item in all_candidates[bottom_start:]
+        ]
+    else:
+        bottom_candidates = []
+
+    selected = top_candidates + bottom_candidates
 
     # Phase 3: add Gemini explanations only for the survivors, all at once
     await asyncio.gather(*[
         add_explanation_async(item, condition_ids)
-        for _, item in top_candidates
+        for _, item, _ in selected
     ])
 
     return [
@@ -110,6 +128,7 @@ async def rank_top_items_across_restaurants(
             "score": item.final_score,
             "confidence": item.final_confidence,
             "short_explanation": item.short_explanation,
+            **({"tier": tier} if bottom_n > 0 else {}),
         }
-        for restaurant, item in top_candidates
+        for restaurant, item, tier in selected
     ]

@@ -359,10 +359,12 @@ _SSE_HEADERS = {
 _GEMINI_SYSTEM = (
     "You are Nourish.ai, a dietary safety assistant. "
     "Restaurants and dishes have been found and evaluated by our safety engine. "
-    "Present the results below clearly: group by restaurant, list each dish with "
-    "its safety label (Compatible / Caution / High risk), score out of 100, and "
-    "a plain-English explanation of why it is safe or unsafe for the user's conditions. "
-    "Lead with the safest options. "
+    "The data is split into two groups: the TOP 5 SAFEST DISHES and the BOTTOM 5 MOST "
+    "CONCERNING DISHES. Present both groups clearly. "
+    "For each dish include its safety label (Compatible / Caution / High risk), "
+    "score out of 100, and a plain-English explanation of why it is safe or unsafe "
+    "for the user's conditions. "
+    "Lead with the safest options, then clearly warn about the most concerning ones. "
     "Stick strictly to the data provided - do not add, invent, or guess any dish "
     "or restaurant not listed below."
 )
@@ -380,28 +382,44 @@ def _format_results_for_prompt(results: list[dict], condition_ids: list[str],
         "Scale: Compatible=safe | Caution=review ingredients | High risk=avoid | Unclear=insufficient data",
         "",
     ]
-    by_restaurant: dict[str, list[dict]] = {}
-    for item in results:
-        by_restaurant.setdefault(item.get("restaurant_name", "Unknown"), []).append(item)
 
-    for rname, items in by_restaurant.items():
-        lines.append(f"Restaurant: {rname}")
-        if items[0].get("restaurant_address"):
-            lines.append(f"  Address: {items[0]['restaurant_address']}")
+    def _render_group(items: list[dict]) -> list[str]:
+        out: list[str] = []
+        by_restaurant: dict[str, list[dict]] = {}
         for item in items:
-            score = item.get("score")
-            conf  = item.get("confidence")
-            lines.append(
-                f"  - {item.get('item_name', '?')} "
-                f"[{item.get('label','Unclear')}, "
-                f"score {score:.0f}/100, "
-                f"confidence {conf:.0%}]"
-                if (score is not None and conf is not None) else
-                f"  - {item.get('item_name', '?')} [{item.get('label','Unclear')}]"
-            )
-            if item.get("short_explanation"):
-                lines.append(f"    Reason: {item['short_explanation']}")
-        lines.append("")
+            by_restaurant.setdefault(item.get("restaurant_name", "Unknown"), []).append(item)
+        for rname, dishes in by_restaurant.items():
+            out.append(f"Restaurant: {rname}")
+            if dishes[0].get("restaurant_address"):
+                out.append(f"  Address: {dishes[0]['restaurant_address']}")
+            for dish in dishes:
+                score = dish.get("score")
+                conf  = dish.get("confidence")
+                out.append(
+                    f"  - {dish.get('item_name', '?')} "
+                    f"[{dish.get('label','Unclear')}, "
+                    f"score {score:.0f}/100, "
+                    f"confidence {conf:.0%}]"
+                    if (score is not None and conf is not None) else
+                    f"  - {dish.get('item_name', '?')} [{dish.get('label','Unclear')}]"
+                )
+                if dish.get("short_explanation"):
+                    out.append(f"    Reason: {dish['short_explanation']}")
+            out.append("")
+        return out
+
+    # Split into tiers when tier field is present; otherwise treat all as "best"
+    has_tiers = any("tier" in r for r in results)
+    if has_tiers:
+        best  = [r for r in results if r.get("tier") != "worst"]
+        worst = [r for r in results if r.get("tier") == "worst"]
+        lines.append("--- TOP 5 SAFEST DISHES ---")
+        lines.extend(_render_group(best))
+        if worst:
+            lines.append("--- BOTTOM 5 MOST CONCERNING DISHES ---")
+            lines.extend(_render_group(worst))
+    else:
+        lines.extend(_render_group(results))
 
     lines.append("=== END RESULTS ===")
     return "\n".join(lines)
@@ -510,7 +528,7 @@ async def chat(req: ChatRequest):
             }})
 
         all_ranked = await rank_top_items_across_restaurants(
-            enriched_restaurants=enriched, condition_ids=condition_ids, top_n=30)
+            enriched_restaurants=enriched, condition_ids=condition_ids, top_n=5, bottom_n=5)
 
         system_prompt = (
             _GEMINI_SYSTEM

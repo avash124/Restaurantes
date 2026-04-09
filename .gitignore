@@ -42,4 +42,13 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+__py_cache__
 venv
+
+
+CLAUDE.local.md
+
+
+.vscode/*
+!.vscode/settings.json
+
