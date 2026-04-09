@@ -1,8 +1,6 @@
 import re
 
-# Canonical names for well-known chains.  Any restaurant whose normalised name
-# contains one of these strings will share a single cache entry regardless of
-# location — so McDonald's in Boston and McDonald's in LA hit the same key.
+
 _KNOWN_CHAINS: frozenset[str] = frozenset({
     "mcdonalds", "burger king", "wendys", "taco bell", "chipotle",
     "subway", "chick fil a", "kfc", "pizza hut", "dominos", "papa johns",
@@ -19,7 +17,7 @@ _KNOWN_CHAINS: frozenset[str] = frozenset({
 def _normalise(name: str) -> str:
     """Lowercase, strip punctuation/possessives, collapse whitespace."""
     n = name.lower()
-    n = re.sub(r"[''`]s?\b", "", n)   # remove possessives
+    n = re.sub(r"[''`]s?\b", "", n)   
     n = re.sub(r"[^a-z0-9 ]", " ", n)
     return re.sub(r"\s+", " ", n).strip()
 

@@ -21,13 +21,21 @@ import httpx
 
 logger = logging.getLogger(__name__)
 
+# Detect playwright availability once at import time so we can skip the
+# thread-pool dispatch entirely when the package is not installed.
+try:
+    import importlib.util as _ilu
+    _PLAYWRIGHT_AVAILABLE = _ilu.find_spec("playwright") is not None
+except Exception:
+    _PLAYWRIGHT_AVAILABLE = False
+
 _MENU_PATH_HINTS = {
     "/menu", "/food", "/order", "/eat", "/items", "/dining",
     "/allergen", "/nutrition", "/ingredient", "/dish",
 }
 _MENU_TEXT_HINTS = {"menu", "food", "order online", "allergen", "nutrition"}
 
-_HTTPX_TIMEOUT  = 12.0
+_HTTPX_TIMEOUT  = 6.0
 _MAX_MENU_PAGES = 3
 _MAX_PAGE_CHARS = 6_000
 
@@ -229,7 +237,16 @@ async def _collect_with_playwright(website_url: str) -> list[str]:
     """
     Dispatch Playwright to a thread pool so the subprocess-capable event loop
     is isolated from uvicorn's SelectorEventLoop.
+
+    Returns an empty list immediately if playwright is not installed.
     """
+    if not _PLAYWRIGHT_AVAILABLE:
+        logger.warning(
+            "[playwright] package not installed — skipping JS fallback for %s. "
+            "Run: pip install playwright && playwright install chromium",
+            website_url,
+        )
+        return []
     loop = asyncio.get_running_loop()
     return await loop.run_in_executor(None, _playwright_sync, website_url)
 

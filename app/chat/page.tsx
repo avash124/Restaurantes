@@ -21,7 +21,7 @@ interface Message {
 
 
 
-// Generic prompts -- conditions come from the profile, not typed by the user.
+
 const PROMPTS = [
   "What can I eat for lunch near me?",
   "Find me a safe dinner option nearby",
@@ -52,7 +52,6 @@ export default function ChatPage() {
   const [draftAddress, setDraftAddress] = useState("");
   const [showMapPicker, setShowMapPicker] = useState(false);
 
-  // Profile loaded once on mount -- used silently by all requests
   const [profile, setProfile] = useState<StoredProfile | null>(null);
 
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -60,7 +59,6 @@ export default function ChatPage() {
   const addressInputRef = useRef<HTMLInputElement>(null);
   const abortRef = useRef<AbortController | null>(null);
 
-  // -- Profile gate: redirect to /profile if no conditions are set -----------
   useEffect(() => {
     try {
       const stored = localStorage.getItem("userProfile");
@@ -138,7 +136,6 @@ export default function ChatPage() {
 
       if (textareaRef.current) textareaRef.current.style.height = "auto";
 
-      // Placeholder assistant bubble -- status line replaces the cursor while agents run
       setMessages((prev) => [...prev, { role: "assistant", content: "", streaming: true }]);
 
       const ctrl = new AbortController();
@@ -187,7 +184,6 @@ export default function ChatPage() {
               if (evt.error) throw new Error(evt.error);
 
               if (evt.type === "status") {
-                // Show agent progress inside the assistant bubble until tokens arrive
                 if (!tokensStarted) {
                   setMessages((prev) => {
                     const updated = [...prev];
@@ -200,7 +196,6 @@ export default function ChatPage() {
                 }
 
               } else if (evt.type === "token") {
-                // Gemini tokens start -- clear status text from bubble, then append
                 if (!tokensStarted) {
                   tokensStarted = true;
                   setMessages((prev) => {
@@ -225,7 +220,6 @@ export default function ChatPage() {
                   return updated;
                 });
 
-              // Legacy plain-token format (backwards compat)
               } else if (evt.token) {
                 if (!tokensStarted) {
                   tokensStarted = true;

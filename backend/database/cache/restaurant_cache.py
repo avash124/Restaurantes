@@ -1,6 +1,6 @@
 from backend.database.cache.redis_client import get_json, set_json, delete_key
 
-RESTAURANT_MENU_TTL_SECONDS = 60 * 60 * 12  # 12 hours
+RESTAURANT_MENU_TTL_SECONDS = 60 * 60 * 12  
 
 
 async def get_cached_restaurant_menu(key: str):

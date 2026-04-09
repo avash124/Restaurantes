@@ -18,8 +18,6 @@ def discover_restaurants_in_radius_task(_task, center_lat: float, center_lng: fl
         session.add(run)
         session.commit()
         session.refresh(run)
-
-        # Replace with Browser Use wide-browsing results
         discovered = []
 
         for idx, restaurant_data in enumerate(discovered, start=1):

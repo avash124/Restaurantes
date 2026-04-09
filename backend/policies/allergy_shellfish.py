@@ -3,14 +3,12 @@ from backend.models.condition_policy import ConditionPolicy
 shellfish_policy = ConditionPolicy(
     condition_id="shellfish_allergy",
     blocked_ingredients=[
-        # ── Crustaceans ───────────────────────────────────────────────────────
         "shrimp", "prawn", "king prawn", "tiger prawn", "jumbo shrimp",
         "crab", "dungeness crab", "blue crab", "snow crab", "king crab",
         "imitation crab", "surimi", "crab stick",
         "lobster", "lobster tail", "langoustine", "langosta",
         "crayfish", "crawfish", "crawdad",
         "barnacle", "krill",
-        # ── Mollusks ─────────────────────────────────────────────────────────
         "scallop", "sea scallop", "bay scallop",
         "clam", "little neck clam", "manila clam", "razor clam",
         "oyster", "pacific oyster", "kumamoto",
@@ -22,13 +20,11 @@ shellfish_policy = ConditionPolicy(
         "cuttlefish",
         "snail", "escargot",
         "sea urchin", "uni",
-        # ── Shellfish-derived condiments and stocks ───────────────────────────
         "shrimp paste", "belacan", "bagoong",
         "dried shrimp",
         "fish sauce", 
         "shellfish stock", "seafood stock", "seafood broth",
         "oyster sauce",
-        # ── Dishes known to contain shellfish ─────────────────────────────────
         "paella", "bouillabaisse", "cioppino", "bisque",
         "seafood medley", "seafood mix", "fruits de mer",
         "surf and turf",

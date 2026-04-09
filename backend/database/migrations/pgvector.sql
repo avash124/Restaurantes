@@ -1,25 +1,18 @@
--- 003_pgvector.sql
--- pgvector table, ANN index, and helper similarity function
-
 create extension if not exists vector;
 
--- =========================
--- menu_item_embeddings
--- =========================
+
 create table if not exists menu_item_embeddings (
     menu_item_id uuid primary key references menu_items(id) on delete cascade,
     embedding vector(768),
     created_at timestamptz default now()
 );
 
--- Exact search works without an index, but add ANN index for scale.
--- HNSW is usually a good default.
+
 create index if not exists idx_menu_item_embeddings_hnsw
 on menu_item_embeddings
 using hnsw (embedding vector_cosine_ops)
 with (m = 16, ef_construction = 64);
 
--- Optional helper function for similarity search
 create or replace function match_menu_items (
     query_embedding vector(768),
     match_count integer default 10

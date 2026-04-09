@@ -38,7 +38,6 @@ class Settings(BaseModel):
         if not host or ".." in host:
             return False
 
-        # Supabase Postgres host must be: db.<project-ref>.supabase.co
         if host.startswith("db.") and host.endswith(".supabase.co"):
             parts = host.split(".")
             if len(parts) < 4 or not parts[1]:

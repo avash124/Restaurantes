@@ -2,12 +2,11 @@ import sys
 from pathlib import Path
 from dotenv import load_dotenv
 
-# Allow `uvicorn main:app` when running from the backend directory.
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-load_dotenv(Path(__file__).parent / ".env", override=True)  # backend/.env - must load before any backend.* imports
+load_dotenv(Path(__file__).resolve().parent / ".env", override=True)  # backend/.env - must load before any backend.* imports
 
 from contextlib import asynccontextmanager
 import asyncio
@@ -64,10 +63,10 @@ async def lifespan(app: FastAPI):
         except Exception as e:
             print(f"[startup] DB init skipped - {e}")
     yield
-    # Shutdown: stop any browser-use sessions still running on the remote API.
+    
     try:
         client = get_browseruse_client()
-        await session_registry.stop_all_sessions(client.tasks)
+        await session_registry.stop_all_sessions(client.sessions)
     except Exception as exc:
         print(f"[shutdown] error stopping browser-use sessions: {exc}")
 
@@ -139,7 +138,7 @@ async def discover(req: DiscoverRequest):
         try:
             await set_job_progress(job_id, {"status": "running", "message": "Searching for restaurants..."})
         except Exception:
-            pass  # Redis unavailable - progress tracking is optional
+            pass  
         discovery = await discover_restaurants_for_query(
             lat_bucket=lat_bucket,
             lng_bucket=lng_bucket,
@@ -149,25 +148,30 @@ async def discover(req: DiscoverRequest):
         )
         restaurants = discovery.get("restaurants", [])
 
-        enriched: list[dict] = []
-        for r in restaurants:
-            try:
-                data = await enrich_restaurant(
-                    restaurant_name=r["name"],
-                    website_url=r.get("website_url"),
-                    location_hint=req.location,
-                )
-                enriched.append(data)
-            except Exception:
-                enriched.append({
-                    "restaurant_name": r["name"],
-                    "address": r.get("address", ""),
-                    "website_url": r.get("website_url"),
-                    "menu_items": [],
-                })
+        _sem = asyncio.Semaphore(6)
+
+        async def _enrich(r: dict) -> dict:
+            async with _sem:
+                try:
+                    return await enrich_restaurant(
+                        restaurant_name=r["name"],
+                        website_url=r.get("website_url"),
+                        location_hint=req.location,
+                    )
+                except Exception:
+                    return {
+                        "restaurant_name": r["name"],
+                        "address": r.get("address", ""),
+                        "website_url": r.get("website_url"),
+                        "menu_items": [],
+                    }
+
+        enriched: list[dict] = list(
+            await asyncio.gather(*[_enrich(r) for r in restaurants])
+        )
 
         if condition_ids:
-            results = rank_top_items_across_restaurants(
+            results = await rank_top_items_across_restaurants(
                 enriched_restaurants=enriched,
                 condition_ids=condition_ids,
                 top_n=30,
@@ -257,7 +261,7 @@ async def discover_stream(req: DiscoverRequest):
             }
 
         if condition_ids:
-            ranked = rank_top_items_across_restaurants(
+            ranked = await rank_top_items_across_restaurants(
                 enriched_restaurants=[data],
                 condition_ids=condition_ids,
                 top_n=10,
@@ -311,12 +315,15 @@ async def discover_stream(req: DiscoverRequest):
 
             yield f"data: {json.dumps({'type': 'first_batch_complete'})}\n\n"
 
-            for r in rest:
-                try:
-                    result = await _enrich_and_evaluate(r)
+            if rest:
+                rest_results = await asyncio.gather(
+                    *[_enrich_and_evaluate(r) for r in rest],
+                    return_exceptions=True,
+                )
+                for result in rest_results:
+                    if isinstance(result, Exception):
+                        continue
                     yield f"data: {json.dumps({'type': 'restaurant', 'data': result})}\n\n"
-                except Exception:
-                    pass
 
             yield f"data: {json.dumps({'type': 'done', 'total_restaurants': len(restaurants)})}\n\n"
 
@@ -445,8 +452,9 @@ async def chat(req: ChatRequest):
         for m in req.messages[:-1]
     ]
 
-    # Parse cuisine/intent before streaming begins so the category is ready
     category = await parse_search_intent(last_user_text)
+
+    _ENRICH_CONCURRENCY = 6
 
     async def event_stream():
         yield _sse({"type": "status", "message": f"Searching for {category} restaurants near {req.location}..."})
@@ -469,37 +477,39 @@ async def chat(req: ChatRequest):
                     "message": f"Found {len(restaurants)} restaurant(s). Analysing menus..."})
 
         enriched: list[dict] = []
+        sem = asyncio.Semaphore(_ENRICH_CONCURRENCY)
 
         async def _process(r: dict) -> dict:
-            try:
-                data = await enrich_restaurant(
-                    restaurant_name=r["name"],
-                    website_url=r.get("website_url"),
-                    location_hint=req.location,
-                )
-            except Exception:
-                data = {"restaurant_name": r["name"], "address": r.get("address", ""),
-                        "website_url": r.get("website_url"), "menu_items": []}
+            async with sem:
+                try:
+                    data = await enrich_restaurant(
+                        restaurant_name=r["name"],
+                        website_url=r.get("website_url"),
+                        location_hint=req.location,
+                    )
+                except Exception:
+                    data = {"restaurant_name": r["name"], "address": r.get("address", ""),
+                            "website_url": r.get("website_url"), "menu_items": []}
             return data
 
-        first_batch = restaurants[:3]
 
-        first_data = await asyncio.gather(*[_process(r) for r in first_batch],
-                                           return_exceptions=True)
-        for r, data in zip(first_batch, first_data):
-            if isinstance(data, Exception):
+        tasks = [asyncio.create_task(_process(r)) for r in restaurants]
+        for coro in asyncio.as_completed(tasks):
+            try:
+                data = await coro
+            except Exception:
                 continue
             enriched.append(data)
-            ranked = rank_top_items_across_restaurants(
+            ranked = await rank_top_items_across_restaurants(
                 enriched_restaurants=[data], condition_ids=condition_ids, top_n=5)
             yield _sse({"type": "restaurant", "data": {
-                "restaurant_name": data.get("restaurant_name", r["name"]),
+                "restaurant_name": data.get("restaurant_name", ""),
                 "restaurant_address": data.get("address", ""),
                 "website_url": data.get("website_url"),
                 "items": ranked,
             }})
 
-        all_ranked = rank_top_items_across_restaurants(
+        all_ranked = await rank_top_items_across_restaurants(
             enriched_restaurants=enriched, condition_ids=condition_ids, top_n=30)
 
         system_prompt = (
@@ -509,10 +519,9 @@ async def chat(req: ChatRequest):
 
         yield _sse({"type": "status", "message": "Preparing your personalised results..."})
 
-        # Run Gemini in a thread (synchronous SDK) and bridge to the async queue
-        # using call_soon_threadsafe so the queue is only touched from the event loop.
+        
         queue: asyncio.Queue[str | None] = asyncio.Queue()
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
 
         def run_gemini():
             try:

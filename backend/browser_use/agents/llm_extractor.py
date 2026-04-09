@@ -13,6 +13,8 @@ import json
 import logging
 from functools import partial
 
+from google.genai import types as genai_types
+
 from backend.browser_use.agents.structured_schemas import DeepRestaurantOutput
 from backend.gemini_llm.gemini_client import get_gemini_client
 
@@ -71,9 +73,13 @@ def _call_gemini(prompt: str) -> str:
     response = client.models.generate_content(
         model=_MODEL,
         contents=prompt,
-        config={"response_mime_type": "application/json"},
+        config=genai_types.GenerateContentConfig(
+            response_mime_type="application/json",
+            temperature=0.0,
+        ),
     )
-    return response.text or "{}"
+    # response.text can be None when Gemini fails to produce output
+    return (response.text or "{}").strip() or "{}"
 
 
 async def extract_menu_from_pages(

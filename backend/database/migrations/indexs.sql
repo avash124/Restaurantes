@@ -1,11 +1,3 @@
--- 002_indexes.sql
--- Performance-oriented indexes
-
--- =========================
--- restaurants
--- =========================
-
--- Functional index to support case-insensitive name lookup (ilike without wildcards)
 create index if not exists idx_restaurants_name_lower
 on restaurants (lower(name));
 
@@ -30,24 +22,17 @@ on restaurants (last_discovered_at);
 create index if not exists idx_restaurants_next_refresh_at
 on restaurants (next_refresh_at);
 
--- =========================
--- discovery_runs
--- =========================
 create index if not exists idx_discovery_runs_started_at
 on discovery_runs (started_at);
 
 create index if not exists idx_discovery_runs_status
 on discovery_runs (status);
 
--- =========================
--- discovery_run_restaurants
--- =========================
+
 create index if not exists idx_discovery_run_restaurants_restaurant_id
 on discovery_run_restaurants (restaurant_id);
 
--- =========================
--- restaurant_pages
--- =========================
+
 create index if not exists idx_restaurant_pages_restaurant_id
 on restaurant_pages (restaurant_id);
 
@@ -57,9 +42,8 @@ on restaurant_pages (page_type);
 create index if not exists idx_restaurant_pages_last_fetched_at
 on restaurant_pages (last_fetched_at);
 
--- =========================
--- menu_items
--- =========================
+
+
 create index if not exists idx_menu_items_restaurant_id
 on menu_items (restaurant_id);
 
@@ -72,9 +56,7 @@ on menu_items (category);
 create index if not exists idx_menu_items_last_seen_at
 on menu_items (last_seen_at);
 
--- =========================
--- condition_evaluations
--- =========================
+
 create index if not exists idx_condition_evaluations_menu_item_id
 on condition_evaluations (menu_item_id);
 
@@ -84,12 +66,7 @@ on condition_evaluations (condition_id);
 create index if not exists idx_condition_evaluations_label
 on condition_evaluations (label);
 
--- =========================
--- route_cache
--- =========================
 
--- Composite index matches the exact lookup in get_valid_route_cache;
--- three separate single-column indexes would not serve this query.
 create index if not exists idx_route_cache_lookup
 on route_cache (origin_hash, restaurant_id, travel_mode);
 

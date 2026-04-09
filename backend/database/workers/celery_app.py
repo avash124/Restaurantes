@@ -1,11 +1,12 @@
 from pathlib import Path
 from dotenv import load_dotenv
-load_dotenv(Path(__file__).parent.parent.parent / ".env")  # backend/.env
+load_dotenv(Path(__file__).parent.parent.parent / ".env")
 
 import asyncio
 import logging
 
 from celery import Celery
+from celery.schedules import crontab
 from celery.signals import worker_shutdown
 from backend.database.core.config import settings
 
@@ -17,7 +18,9 @@ celery_app = Celery(
     backend=settings.celery_result_backend,
 )
 
-from celery.schedules import crontab
+celery_app.autodiscover_tasks([
+    "backend.database.workers.tasks",
+])
 
 celery_app.conf.update(
     task_serializer="json",
@@ -26,10 +29,9 @@ celery_app.conf.update(
     timezone="America/Los_Angeles",
     enable_utc=True,
     task_track_started=True,
-    # Pre-warm hot chain menus every 6 hours so cache is always warm.
     beat_schedule={
         "warmup-hot-chains-every-6h": {
-            "task": "warmup.warm_hot_chains",
+            "task": "backend.database.workers.tasks.warm_hot_chains",
             "schedule": crontab(minute=0, hour="*/6"),
         },
     },
@@ -37,7 +39,7 @@ celery_app.conf.update(
 
 
 @worker_shutdown.connect
-def _stop_browser_sessions_on_worker_shutdown(**kwargs):
+def _stop_browser_sessions_on_worker_shutdown(**_):
     """Stop any in-flight browser-use sessions when a Celery worker exits."""
     from backend.browser_use import session_registry
     from backend.browser_use.agents.browser_use_client import get_browseruse_client

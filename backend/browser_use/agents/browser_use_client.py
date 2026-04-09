@@ -1,4 +1,4 @@
-from browser_use_sdk import AsyncBrowserUse
+from browser_use_sdk.v3 import AsyncBrowserUse
 
 
 def get_browseruse_client() -> AsyncBrowserUse:

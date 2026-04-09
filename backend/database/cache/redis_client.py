@@ -7,7 +7,7 @@ from backend.database.core.config import settings
 
 redis_client = redis.from_url(settings.redis_cache_url, decode_responses=True)
 
-# In-memory fallback cache used when Redis is unavailable.
+
 _fallback_cache: dict[str, tuple[float | None, dict]] = {}
 _fallback_lock = asyncio.Lock()
 _REDIS_RETRY_COOLDOWN_SECONDS = 30.0
@@ -40,7 +40,7 @@ async def _fallback_get(key: str):
 
 async def _fallback_set(key: str, value: dict, ttl_seconds: int):
     expires_at = time.monotonic() + max(ttl_seconds, 1)
-    safe_value = json.loads(json.dumps(value))  # defensive copy
+    safe_value = json.loads(json.dumps(value))  
     async with _fallback_lock:
         _fallback_cache[key] = (expires_at, safe_value)
 

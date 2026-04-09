@@ -1,6 +1,6 @@
 from backend.database.cache.redis_client import get_json, set_json, delete_key
 
-ROUTE_TTL_SECONDS = 60 * 60 * 24  # 24 hours
+ROUTE_TTL_SECONDS = 60 * 60 * 24  
 
 
 async def get_cached_route(key: str):

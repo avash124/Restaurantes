@@ -9,7 +9,7 @@ type Profile = {
   location: string;
   conditions: string[];
   allergies: string[];
-  profileComplete: true;   // sentinel — proves the user finished setup
+  profileComplete: true;   
 };
 
 const HEALTH_CONDITIONS = [
@@ -108,7 +108,6 @@ export default function ProfileSetup() {
     setError("");
   };
 
-  // ── Confirmation screen ────────────────────────────────────────────────────
   if (submitted) {
     return (
       <main className="profile-page">
@@ -171,7 +170,6 @@ export default function ProfileSetup() {
     );
   }
 
-  // ── Form ──────────────────────────────────────────────────────────────────
   return (
     <main className="profile-page">
       <section className="signup-card">
@@ -188,7 +186,7 @@ export default function ProfileSetup() {
 
         <form className="profile-form" onSubmit={handleSubmit} noValidate>
 
-          {/* ── Health conditions (required) ─────────────────────────────── */}
+          {}
           <fieldset className="profile-section">
             <legend>
               Health conditions <span className="required">*</span>
@@ -223,7 +221,7 @@ export default function ProfileSetup() {
             </div>
           </fieldset>
 
-          {/* ── Allergies (required) ─────────────────────────────────────── */}
+          {}
           <fieldset className="profile-section">
             <legend>
               Allergies <span className="required">*</span>
@@ -258,7 +256,7 @@ export default function ProfileSetup() {
             </div>
           </fieldset>
 
-          {/* ── Optional personal details ────────────────────────────────── */}
+          {}
           <fieldset className="profile-section">
             <legend>
               Personal details <span className="optional">(optional)</span>

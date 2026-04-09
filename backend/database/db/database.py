@@ -11,6 +11,4 @@ if settings.postgres_url_is_usable():
         pool_timeout=30,
     )
 else:
-    # Keep imports/session wiring alive even when DB credentials are redacted.
-    # Startup skips DB init in this mode.
     engine = create_engine("sqlite+pysqlite:///:memory:", echo=False)

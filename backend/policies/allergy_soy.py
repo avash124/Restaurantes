@@ -3,10 +3,8 @@ from backend.models.condition_policy import ConditionPolicy
 soy_policy = ConditionPolicy(
     condition_id="soy_allergy",
     blocked_ingredients=[
-        # ── Whole soy ─────────────────────────────────────────────────────────
         "soy", "soya", "soybean", "soybeans", "soy bean",
         "edamame",
-        # ── Soy protein products ──────────────────────────────────────────────
         "tofu", "firm tofu", "silken tofu", "soft tofu",
         "tempeh",
         "natto",
@@ -16,19 +14,16 @@ soy_policy = ConditionPolicy(
         "hydrolyzed soy protein", "hydrolyzed vegetable protein", "hvp",
         "soy flour", "soy meal",
         "soy milk", "soy cheese", "soy cream", "soy yogurt",
-        # ── Soy-based sauces and condiments ──────────────────────────────────
         "soy sauce", "shoyu", "tamari",
         "miso", "miso paste", "white miso", "red miso",
         "teriyaki sauce",
         "hoisin sauce",
-        "oyster sauce",          # often contains soy
-        "worcestershire sauce",  # often contains soy
+        "oyster sauce",          
+        "worcestershire sauce",  
         "ponzu",
-        "doubanjiang", "doenjang", "gochujang",  # fermented soy pastes
-        # ── Soy oils / lecithin ───────────────────────────────────────────────
-        "soy lecithin",          # used as emulsifier; may trigger in severe cases
-        "soybean oil",           # typically refined (low allergen risk) but flag for severe allergy
-        # ── Dishes commonly soy-based ────────────────────────────────────────
+        "doubanjiang", "doenjang", "gochujang", 
+        "soy lecithin",          
+        "soybean oil",           
         "agedashi tofu", "mapo tofu", "stir fry sauce",
     ],
     blocked_allergens=["soy", "soya", "soybean"],

@@ -45,7 +45,7 @@ async def parse_search_intent(user_message: str) -> str:
 
         response = await _run_in_thread(client, user_message)
 
-        raw = response.text.strip()
+        raw = (response.text or "").strip()
         # Strip markdown code fences if present
         if raw.startswith("```"):
             raw = raw.split("```")[1]
@@ -72,7 +72,7 @@ async def _run_in_thread(client, user_message: str):
     import asyncio
     import functools
 
-    loop = asyncio.get_event_loop()
+    loop = asyncio.get_running_loop()
     return await loop.run_in_executor(
         None,
         functools.partial(_call_gemini, client, user_message),

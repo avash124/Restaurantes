@@ -3,10 +3,8 @@ from backend.models.condition_policy import ConditionPolicy
 nut_policy = ConditionPolicy(
     condition_id="nut_allergy",
     blocked_ingredients=[
-        # ── Peanuts (legume, but commonly grouped with tree nuts) ─────────────
         "peanut", "peanuts", "peanut butter", "peanut oil",
         "groundnut", "groundnuts", "arachis oil", "groundnut oil",
-        # ── Tree nuts ─────────────────────────────────────────────────────────
         "almond", "almonds", "almond butter", "almond flour",
         "almond meal", "almond milk", "almond paste", "marzipan",
         "walnut", "walnuts", "walnut oil",
@@ -20,11 +18,9 @@ nut_policy = ConditionPolicy(
         "chestnut", "chestnuts", "chestnut flour",
         "coconut", "coconut milk", "coconut cream", "coconut oil",
         "coconut flour", "desiccated coconut", "shredded coconut",
-        # ── Mixed / generic nut terms ─────────────────────────────────────────
         "mixed nuts", "nut mix", "trail mix", "nut butter", "nut oil",
         "nut flour", "nut paste", "nut brittle", "praline",
         "nougat", "gianduja", "frangipane",
-        # ── Sauces and dishes commonly containing nuts ────────────────────────
         "satay sauce", "satay", "gado gado", "romesco", "pesto",
         "tarator", "skordalia", "dukkah", "nut crust",
     ],

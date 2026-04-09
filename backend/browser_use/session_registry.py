@@ -14,7 +14,7 @@ import logging
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from browser_use_sdk.v2.resources.tasks import AsyncTasks
+    from browser_use_sdk.v3.resources.sessions import AsyncSessions
 
 logger = logging.getLogger(__name__)
 
@@ -36,20 +36,20 @@ def active_session_ids() -> frozenset[str]:
     return frozenset(_active)
 
 
-async def stop_all_sessions(tasks: "AsyncTasks") -> None:
-    """Stop every registered task.  Called during FastAPI lifespan shutdown."""
+async def stop_all_sessions(sessions: "AsyncSessions") -> None:
+    """Stop every registered session.  Called during FastAPI lifespan shutdown."""
     ids = list(_active)
     if not ids:
         return
 
-    logger.info("[registry] stopping %d active browser-use task(s) on shutdown...", len(ids))
+    logger.info("[registry] stopping %d active browser-use session(s) on shutdown...", len(ids))
 
     async def _stop_one(tid: str) -> None:
         try:
-            await tasks.stop(tid)
-            logger.info("[registry] stopped task %s", tid)
+            await sessions.stop(tid)
+            logger.info("[registry] stopped session %s", tid)
         except Exception as exc:
-            logger.warning("[registry] could not stop task %s: %s", tid, exc)
+            logger.warning("[registry] could not stop session %s: %s", tid, exc)
         finally:
             _active.discard(tid)
 
