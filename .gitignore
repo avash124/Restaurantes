@@ -43,11 +43,12 @@ yarn-error.log*
 next-env.d.ts
 
 __py_cache__
-venv
+.venv
 
-
+.claude
 CLAUDE.local.md
-
+CLAUDE.md
+settingd.json
 
 .vscode/*
 !.vscode/settings.json
